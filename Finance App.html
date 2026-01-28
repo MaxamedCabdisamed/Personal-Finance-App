@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance App </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --income-color: #06d6a0;
+            --expense-color: #ef476f;
+            --budget-color: #118ab2;
+            --savings-color: #ffd166;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            color: var(--primary);
+            font-size: 32px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-income {
+            border-top: 5px solid var(--income-color);
+        }
+
+        .card-expense {
+            border-top: 5px solid var(--expense-color);
+        }
+
+        .card-balance {
+            border-top: 5px solid var(--primary);
+        }
+
+        .card-budget {
+            border-top: 5px solid var(--budget-color);
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card .amount {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .card-income .amount {
+            color: var(--income-color);
+        }
+
+        .card-expense .amount {
+            color: var(--expense-color);
+        }
+
+        .card-balance .amount {
+            color: var(--primary);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-success {
+            background-color: var(--income-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--expense-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .transactions-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .transactions-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .transactions-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+        }
+
+        .table-body {
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 25px;
+            border-bottom: 1px solid var(--light-gray);
+            transition: background-color 0.2s;
+        }
+
+        .transaction-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-info h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .transaction-info p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .transaction-income .transaction-amount {
+            color: var(--income-color);
+        }
+
+        .transaction-expense .transaction-amount {
+            color: var(--expense-color);
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .edit-btn {
+            color: var(--primary);
+        }
+
+        .delete-btn {
+            color: var(--danger);
+        }
+
+        .action-btn:hover {
+            background-color: var(--light-gray);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-option input {
+            accent-color: var(--primary);
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .budget-section, .savings-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+        }
+
+        .budget-item, .savings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .budget-item:last-child, .savings-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: var(--light-gray);
+            border-radius: 5px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .budget-progress {
+            background-color: var(--budget-color);
+        }
+
+        .savings-progress {
+            background-color: var(--savings-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            border-top: 1px solid var(--light-gray);
+            margin-top: 30px;
+        }
+
+        /* Tabs for budget and savings */
+        .tab-container {
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--light-gray);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <h1>Personal Finance App:</h1>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="addTransactionBtn">
+                    <i class="fas fa-plus-circle"></i> Add Transaction
+                </button>
+            </div>
+        </header>
+
+        <div class="summary-cards">
+            <div class="card card-income">
+                <h3><i class="fas fa-money-bill-wave"></i> Total Income</h3>
+                <div class="amount" id="totalIncome">$0.00</div>
+            </div>
+            <div class="card card-expense">
+                <h3><i class="fas fa-shopping-cart"></i> Total Expense</h3>
+                <div class="amount" id="totalExpense">$0.00</div>
+            </div>
+            <div class="card card-balance">
+                <h3><i class="fas fa-wallet"></i> Current Balance</h3>
+                <div class="amount" id="currentBalance">$0.00</div>
+            </div>
+            <div class="card card-budget">
+                <h3><i class="fas fa-chart-pie"></i> Budget Remaining</h3>
+                <div class="amount" id="budgetRemaining">$0.00</div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="chart-container">
+                <h2><i class="fas fa-chart-bar"></i> Income vs Expenses</h2>
+                <canvas id="incomeExpenseChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2><i class="fas fa-chart-pie"></i> Expense Categories</h2>
+                <canvas id="expenseCategoryChart"></canvas>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div>
+                <button class="btn btn-warning" id="manageBudgetsBtn">
+                    <i class="fas fa-chart-pie"></i> Manage Budgets
+                </button>
+                <button class="btn btn-warning" id="manageSavingsBtn">
+                    <i class="fas fa-piggy-bank"></i> Manage Savings
+                </button>
+            </div>
+            <div>
+                <button class="btn btn-success" id="addIncomeBtn">
+                    <i class="fas fa-plus-circle"></i> Add Income
+                </button>
+                <button class="btn btn-danger" id="addExpenseBtn">
+                    <i class="fas fa-minus-circle"></i> Add Expense
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab active" data-tab="transactions">Transactions</button>
+                <button class="tab" data-tab="budgets">Budgets</button>
+                <button class="tab" data-tab="savings">Savings Goals</button>
+            </div>
+            
+            <div class="tab-content active" id="transactionsTab">
+                <div class="transactions-section">
+                    <div class="transactions-table">
+                        <div class="table-header" style="background-color: var(--income-color);">
+                            <h2><i class="fas fa-arrow-down"></i> Income</h2>
+                            <span id="incomeCount">0 transactions</span>
+                        </div>
+                        <div class="table-body" id="incomeTable">
+                            <!-- Income transactions will be loaded here -->
+                            <div class="empty-state">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <p>No income transactions yet</p>
+                                <button class="btn btn-success" id="addIncomeFromEmpty">
+                                    <i class="fas fa-plus-circle"></i> Add Income
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="transactions-table">
+                        <div class="table-header" style="background-color: var(--expense-color);">
+                            <h2><i class="fas fa-arrow-up"></i> Expenses</h2>
+                            <span id="expenseCount">0 transactions</span>
+                        </div>
+                        <div class="table-body" id="expenseTable">
+                            <!-- Expense transactions will be loaded here -->
+                            <div class="empty-state">
+                                <i class="fas fa-shopping-cart"></i>
+                                <p>No expense transactions yet</p>
+                                <button class="btn btn-danger" id="addExpenseFromEmpty">
+                                    <i class="fas fa-plus-circle"></i> Add Expense
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="budgetsTab">
+                <div class="budget-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-chart-pie"></i> Monthly Budgets</h2>
+                        <button class="btn btn-primary" id="addBudgetBtn">
+                            <i class="fas fa-plus-circle"></i> Add Budget
+                        </button>
+                    </div>
+                    <div id="budgetsList">
+                        <!-- Budget items will be loaded here -->
+                        <div class="empty-state">
+                            <i class="fas fa-chart-pie"></i>
+                            <p>No budgets set for this month</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="savingsTab">
+                <div class="savings-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-piggy-bank"></i> Savings Goals</h2>
+                        <button class="btn btn-primary" id="addSavingsBtn">
+                            <i class="fas fa-plus-circle"></i> Add Savings Goal
+                        </button>
+                    </div>
+                    <div id="savingsList">
+                        <!-- Savings items will be loaded here -->
+                        <div class="empty-state">
+                            <i class="fas fa-piggy-bank"></i>
+                            <p>No savings goals set yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Modal -->
+        <div class="modal" id="transactionModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-exchange-alt"></i> <span id="modalTitle">Add Transaction</span></h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="transactionForm">
+                        <input type="hidden" id="transactionId">
+                        <div class="form-group">
+                            <label for="transactionType">Transaction Type</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="type" value="income" id="typeIncome" checked>
+                                    Income
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="type" value="expense" id="typeExpense">
+                                    Expense
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" id="title" class="form-control" placeholder="Salary, Groceries, etc." required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="amount">Amount ($)</label>
+                                <input type="number" id="amount" class="form-control" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select id="category" class="form-control" required>
+                                    <option value="">Select Category</option>
+                                    <option value="salary">Salary</option>
+                                    <option value="freelance">Freelance</option>
+                                    <option value="investment">Investment</option>
+                                    <option value="food">Food & Dining</option>
+                                    <option value="transportation">Transportation</option>
+                                    <option value="entertainment">Entertainment</option>
+                                    <option value="shopping">Shopping</option>
+                                    <option value="bills">Bills & Utilities</option>
+                                    <option value="health">Health & Fitness</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description (Optional)</label>
+                            <textarea id="description" class="form-control" rows="3" placeholder="Add any details about this transaction"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" id="cancelBtn">Cancel</button>
+                    <button class="btn btn-primary" id="saveTransactionBtn">Save Transaction</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Modal -->
+        <div class="modal" id="budgetModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-chart-pie"></i> <span id="budgetModalTitle">Add Monthly Budget</span></h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="budgetForm">
+                        <input type="hidden" id="budgetId">
+                        <div class="form-group">
+                            <label for="budgetCategory">Category</label>
+                            <select id="budgetCategory" class="form-control" required>
+                                <option value="">Select Category</option>
+                                <option value="food">Food & Dining</option>
+                                <option value="transportation">Transportation</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="bills">Bills & Utilities</option>
+                                <option value="health">Health & Fitness</option>
+                                <option value="housing">Housing</option>
+                                <option value="education">Education</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="budgetAmount">Monthly Budget Amount ($)</label>
+                            <input type="number" id="budgetAmount" class="form-control" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="budgetMonth">Month</label>
+                            <input type="month" id="budgetMonth" class="form-control" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" id="cancelBudgetBtn">Cancel</button>
+                    <button class="btn btn-primary" id="saveBudgetBtn">Save Budget</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Savings Modal -->
+        <div class="modal" id="savingsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fas fa-piggy-bank"></i> <span id="savingsModalTitle">Add Savings Goal</span></h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="savingsForm">
+                        <input type="hidden" id="savingsId">
+                        <div class="form-group">
+                            <label for="savingsGoal">Goal Name</label>
+                            <input type="text" id="savingsGoal" class="form-control" placeholder="New Car, Vacation, Emergency Fund, etc." required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="targetAmount">Target Amount ($)</label>
+                                <input type="number" id="targetAmount" class="form-control" min="0" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="currentAmount">Current Amount ($)</label>
+                                <input type="number" id="currentAmount" class="form-control" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="targetDate">Target Date</label>
+                            <input type="date" id="targetDate" class="form-control" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" id="cancelSavingsBtn">Cancel</button>
+                    <button class="btn btn-primary" id="saveSavingsBtn">Save Goal</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Personal Finance App &copy; 2026 | Your Personal income & expense tracker App | Data stored locally in your browser</p>
+            <p> Developed by Eng.Mohamed Abdsiamed | Purpose :MIT - Final Course examination project | Technologies used by:HTML CSS AND JavaScript</p>
+            <p>Contact me: Email: mohomedabdisamed@gmail.com </p>
+            </footer>
+    </div>
+
+    <script>
+        // Initialize application data
+        let transactions = JSON.parse(localStorage.getItem('financeTransactions')) || [];
+        let budgets = JSON.parse(localStorage.getItem('financeBudgets')) || [];
+        let savings = JSON.parse(localStorage.getItem('financeSavings')) || [];
+        
+        // Chart instances
+        let incomeExpenseChart = null;
+        let expenseCategoryChart = null;
+        
+        // DOM Elements
+        const transactionModal = document.getElementById('transactionModal');
+        const budgetModal = document.getElementById('budgetModal');
+        const savingsModal = document.getElementById('savingsModal');
+        
+        // Transaction modal elements
+        const transactionForm = document.getElementById('transactionForm');
+        const transactionIdInput = document.getElementById('transactionId');
+        const modalTitle = document.getElementById('modalTitle');
+        const saveTransactionBtn = document.getElementById('saveTransactionBtn');
+        
+        // Budget modal elements
+        const budgetForm = document.getElementById('budgetForm');
+        const budgetIdInput = document.getElementById('budgetId');
+        const budgetModalTitle = document.getElementById('budgetModalTitle');
+        const saveBudgetBtn = document.getElementById('saveBudgetBtn');
+        
+        // Savings modal elements
+        const savingsForm = document.getElementById('savingsForm');
+        const savingsIdInput = document.getElementById('savingsId');
+        const savingsModalTitle = document.getElementById('savingsModalTitle');
+        const saveSavingsBtn = document.getElementById('saveSavingsBtn');
+        
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show active tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load data from localStorage
+            loadTransactions();
+            loadBudgets();
+            loadSavings();
+            updateSummaryCards();
+            updateCharts();
+            
+            // Set current date for transaction form
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // Set default month for budget form to current month
+            const now = new Date();
+            const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('budgetMonth').value = currentMonth;
+            
+            // Set default date for savings form to 3 months from now
+            const futureDate = new Date();
+            futureDate.setMonth(futureDate.getMonth() + 3);
+            document.getElementById('targetDate').valueAsDate = futureDate;
+        });
+        
+        // Modal open/close functionality
+        function openModal(modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal(modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            clearForm(modal === transactionModal ? transactionForm : (modal === budgetModal ? budgetForm : savingsForm));
+        }
+        
+        function clearForm(form) {
+            form.reset();
+            if (form === transactionForm) {
+                transactionIdInput.value = '';
+                modalTitle.textContent = 'Add Transaction';
+                document.getElementById('typeIncome').checked = true;
+            } else if (form === budgetForm) {
+                budgetIdInput.value = '';
+                budgetModalTitle.textContent = 'Add Monthly Budget';
+            } else if (form === savingsForm) {
+                savingsIdInput.value = '';
+                savingsModalTitle.textContent = 'Add Savings Goal';
+            }
+        }
+        
+        // Event listeners for opening modals
+        document.getElementById('addTransactionBtn').addEventListener('click', () => {
+            openModal(transactionModal);
+        });
+        
+        document.getElementById('addIncomeBtn').addEventListener('click', () => {
+            openModal(transactionModal);
+            document.getElementById('typeIncome').checked = true;
+        });
+        
+        document.getElementById('addExpenseBtn').addEventListener('click', () => {
+            openModal(transactionModal);
+            document.getElementById('typeExpense').checked = true;
+        });
+        
+        document.getElementById('addIncomeFromEmpty').addEventListener('click', () => {
+            openModal(transactionModal);
+            document.getElementById('typeIncome').checked = true;
+        });
+        
+        document.getElementById('addExpenseFromEmpty').addEventListener('click', () => {
+            openModal(transactionModal);
+            document.getElementById('typeExpense').checked = true;
+        });
+        
+        document.getElementById('manageBudgetsBtn').addEventListener('click', () => {
+            // Switch to budgets tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="budgets"]').classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('budgetsTab').classList.add('active');
+        });
+        
+        document.getElementById('addBudgetBtn').addEventListener('click', () => {
+            openModal(budgetModal);
+        });
+        
+        document.getElementById('manageSavingsBtn').addEventListener('click', () => {
+            // Switch to savings tab
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab[data-tab="savings"]').classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('savingsTab').classList.add('active');
+        });
+        
+        document.getElementById('addSavingsBtn').addEventListener('click', () => {
+            openModal(savingsModal);
+        });
+        
+        // Event listeners for closing modals
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                closeModal(modal);
+            });
+        });
+        
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            closeModal(transactionModal);
+        });
+        
+        document.getElementById('cancelBudgetBtn').addEventListener('click', () => {
+            closeModal(budgetModal);
+        });
+        
+        document.getElementById('cancelSavingsBtn').addEventListener('click', () => {
+            closeModal(savingsModal);
+        });
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === transactionModal) {
+                closeModal(transactionModal);
+            }
+            if (event.target === budgetModal) {
+                closeModal(budgetModal);
+            }
+            if (event.target === savingsModal) {
+                closeModal(savingsModal);
+            }
+        });
+        
+        // Save transaction
+        saveTransactionBtn.addEventListener('click', function() {
+            const id = transactionIdInput.value || Date.now().toString();
+            const type = document.querySelector('input[name="type"]:checked').value;
+            const title = document.getElementById('title').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const date = document.getElementById('date').value;
+            const description = document.getElementById('description').value;
+            
+            if (!title || !amount || !category || !date) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const transaction = {
+                id,
+                type,
+                title,
+                amount,
+                category,
+                date,
+                description
+            };
+            
+            // Check if we're editing or adding
+            const existingIndex = transactions.findIndex(t => t.id === id);
+            if (existingIndex > -1) {
+                transactions[existingIndex] = transaction;
+            } else {
+                transactions.push(transaction);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('financeTransactions', JSON.stringify(transactions));
+            
+            // Update UI
+            loadTransactions();
+            updateSummaryCards();
+            updateCharts();
+            
+            // Close modal
+            closeModal(transactionModal);
+        });
+        
+        // Save budget
+        saveBudgetBtn.addEventListener('click', function() {
+            const id = budgetIdInput.value || Date.now().toString();
+            const category = document.getElementById('budgetCategory').value;
+            const amount = parseFloat(document.getElementById('budgetAmount').value);
+            const month = document.getElementById('budgetMonth').value;
+            
+            if (!category || !amount || !month) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const budget = {
+                id,
+                category,
+                amount,
+                month
+            };
+            
+            // Check if we're editing or adding
+            const existingIndex = budgets.findIndex(b => b.id === id);
+            if (existingIndex > -1) {
+                budgets[existingIndex] = budget;
+            } else {
+                budgets.push(budget);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('financeBudgets', JSON.stringify(budgets));
+            
+            // Update UI
+            loadBudgets();
+            updateSummaryCards();
+            
+            // Close modal
+            closeModal(budgetModal);
+        });
+        
+        // Save savings goal
+        saveSavingsBtn.addEventListener('click', function() {
+            const id = savingsIdInput.value || Date.now().toString();
+            const goal = document.getElementById('savingsGoal').value;
+            const targetAmount = parseFloat(document.getElementById('targetAmount').value);
+            const currentAmount = parseFloat(document.getElementById('currentAmount').value);
+            const targetDate = document.getElementById('targetDate').value;
+            
+            if (!goal || !targetAmount || !currentAmount || !targetDate) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const savingsItem = {
+                id,
+                goal,
+                targetAmount,
+                currentAmount,
+                targetDate
+            };
+            
+            // Check if we're editing or adding
+            const existingIndex = savings.findIndex(s => s.id === id);
+            if (existingIndex > -1) {
+                savings[existingIndex] = savingsItem;
+            } else {
+                savings.push(savingsItem);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('financeSavings', JSON.stringify(savings));
+            
+            // Update UI
+            loadSavings();
+            
+            // Close modal
+            closeModal(savingsModal);
+        });
+        
+        // Load transactions into the tables
+        function loadTransactions() {
+            const incomeTable = document.getElementById('incomeTable');
+            const expenseTable = document.getElementById('expenseTable');
+            const incomeCount = document.getElementById('incomeCount');
+            const expenseCount = document.getElementById('expenseCount');
+            
+            // Filter transactions
+            const incomeTransactions = transactions.filter(t => t.type === 'income');
+            const expenseTransactions = transactions.filter(t => t.type === 'expense');
+            
+            // Update counts
+            incomeCount.textContent = `${incomeTransactions.length} transaction${incomeTransactions.length !== 1 ? 's' : ''}`;
+            expenseCount.textContent = `${expenseTransactions.length} transaction${expenseTransactions.length !== 1 ? 's' : ''}`;
+            
+            // Clear tables
+            incomeTable.innerHTML = '';
+            expenseTable.innerHTML = '';
+            
+            // If no transactions, show empty state
+            if (incomeTransactions.length === 0) {
+                incomeTable.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <p>No income transactions yet</p>
+                        <button class="btn btn-success" id="addIncomeFromEmpty">
+                            <i class="fas fa-plus-circle"></i> Add Income
+                        </button>
+                    </div>
+                `;
+                document.getElementById('addIncomeFromEmpty').addEventListener('click', () => {
+                    openModal(transactionModal);
+                    document.getElementById('typeIncome').checked = true;
+                });
+            }
+            
+            if (expenseTransactions.length === 0) {
+                expenseTable.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>No expense transactions yet</p>
+                        <button class="btn btn-danger" id="addExpenseFromEmpty">
+                            <i class="fas fa-plus-circle"></i> Add Expense
+                        </button>
+                    </div>
+                `;
+                document.getElementById('addExpenseFromEmpty').addEventListener('click', () => {
+                    openModal(transactionModal);
+                    document.getElementById('typeExpense').checked = true;
+                });
+            }
+            
+            // Load income transactions
+            incomeTransactions.forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                incomeTable.appendChild(transactionElement);
+            });
+            
+            // Load expense transactions
+            expenseTransactions.forEach(transaction => {
+                const transactionElement = createTransactionElement(transaction);
+                expenseTable.appendChild(transactionElement);
+            });
+        }
+        
+        // Create transaction element for table
+        function createTransactionElement(transaction) {
+            const transactionElement = document.createElement('div');
+            transactionElement.className = `transaction-item transaction-${transaction.type}`;
+            
+            const formattedDate = new Date(transaction.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            const categoryNames = {
+                salary: 'Salary',
+                freelance: 'Freelance',
+                investment: 'Investment',
+                food: 'Food & Dining',
+                transportation: 'Transportation',
+                entertainment: 'Entertainment',
+                shopping: 'Shopping',
+                bills: 'Bills & Utilities',
+                health: 'Health & Fitness',
+                other: 'Other'
+            };
+            
+            transactionElement.innerHTML = `
+                <div class="transaction-info">
+                    <h4>${transaction.title}</h4>
+                    <p>${categoryNames[transaction.category] || transaction.category} • ${formattedDate}</p>
+                    ${transaction.description ? `<p class="description">${transaction.description}</p>` : ''}
+                </div>
+                <div class="transaction-amount">
+                    ${transaction.type === 'income' ? '+' : '-'}$${transaction.amount.toFixed(2)}
+                </div>
+                <div class="transaction-actions">
+                    <button class="action-btn edit-btn" data-id="${transaction.id}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-btn delete-btn" data-id="${transaction.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners for edit and delete buttons
+            transactionElement.querySelector('.edit-btn').addEventListener('click', function() {
+                editTransaction(this.getAttribute('data-id'));
+            });
+            
+            transactionElement.querySelector('.delete-btn').addEventListener('click', function() {
+                deleteTransaction(this.getAttribute('data-id'));
+            });
+            
+            return transactionElement;
+        }
+        
+        // Edit transaction
+        function editTransaction(id) {
+            const transaction = transactions.find(t => t.id === id);
+            if (!transaction) return;
+            
+            // Fill form with transaction data
+            transactionIdInput.value = transaction.id;
+            document.querySelector(`input[name="type"][value="${transaction.type}"]`).checked = true;
+            document.getElementById('title').value = transaction.title;
+            document.getElementById('amount').value = transaction.amount;
+            document.getElementById('category').value = transaction.category;
+            document.getElementById('date').value = transaction.date;
+            document.getElementById('description').value = transaction.description || '';
+            
+            modalTitle.textContent = 'Edit Transaction';
+            openModal(transactionModal);
+        }
+        
+        // Delete transaction
+        function deleteTransaction(id) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                localStorage.setItem('financeTransactions', JSON.stringify(transactions));
+                loadTransactions();
+                updateSummaryCards();
+                updateCharts();
+            }
+        }
+        
+        // Load budgets
+        function loadBudgets() {
+            const budgetsList = document.getElementById('budgetsList');
+            
+            // Clear budgets list
+            budgetsList.innerHTML = '';
+            
+            // If no budgets, show empty state
+            if (budgets.length === 0) {
+                budgetsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-chart-pie"></i>
+                        <p>No budgets set for this month</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Get current month for filtering
+            const now = new Date();
+            const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            
+            // Filter budgets for current month
+            const currentBudgets = budgets.filter(b => b.month === currentMonth);
+            
+            // Calculate total spent per category
+            const expenseByCategory = {};
+            const currentMonthExpenses = transactions.filter(t => {
+                if (t.type !== 'expense') return false;
+                const transactionDate = new Date(t.date);
+                const transactionMonth = transactionDate.getFullYear() + '-' + String(transactionDate.getMonth() + 1).padStart(2, '0');
+                return transactionMonth === currentMonth;
+            });
+            
+            currentMonthExpenses.forEach(expense => {
+                if (!expenseByCategory[expense.category]) {
+                    expenseByCategory[expense.category] = 0;
+                }
+                expenseByCategory[expense.category] += expense.amount;
+            });
+            
+            // Create budget items
+            currentBudgets.forEach(budget => {
+                const spent = expenseByCategory[budget.category] || 0;
+                const remaining = budget.amount - spent;
+                const percentage = Math.min((spent / budget.amount) * 100, 100);
+                
+                const budgetElement = document.createElement('div');
+                budgetElement.className = 'budget-item';
+                
+                const categoryNames = {
+                    food: 'Food & Dining',
+                    transportation: 'Transportation',
+                    entertainment: 'Entertainment',
+                    shopping: 'Shopping',
+                    bills: 'Bills & Utilities',
+                    health: 'Health & Fitness',
+                    housing: 'Housing',
+                    education: 'Education',
+                    other: 'Other'
+                };
+                
+                budgetElement.innerHTML = `
+                    <div>
+                        <h4>${categoryNames[budget.category] || budget.category}</h4>
+                        <div class="progress-bar">
+                            <div class="progress budget-progress" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600;">$${spent.toFixed(2)} / $${budget.amount.toFixed(2)}</div>
+                        <div style="font-size: 14px; color: ${remaining >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                            ${remaining >= 0 ? `$${remaining.toFixed(2)} left` : `$${Math.abs(remaining).toFixed(2)} over`}
+                        </div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="action-btn edit-btn" data-id="${budget.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${budget.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add event listeners for edit and delete buttons
+                budgetElement.querySelector('.edit-btn').addEventListener('click', function() {
+                    editBudget(this.getAttribute('data-id'));
+                });
+                
+                budgetElement.querySelector('.delete-btn').addEventListener('click', function() {
+                    deleteBudget(this.getAttribute('data-id'));
+                });
+                
+                budgetsList.appendChild(budgetElement);
+            });
+        }
+        
+        // Edit budget
+        function editBudget(id) {
+            const budget = budgets.find(b => b.id === id);
+            if (!budget) return;
+            
+            // Fill form with budget data
+            budgetIdInput.value = budget.id;
+            document.getElementById('budgetCategory').value = budget.category;
+            document.getElementById('budgetAmount').value = budget.amount;
+            document.getElementById('budgetMonth').value = budget.month;
+            
+            budgetModalTitle.textContent = 'Edit Budget';
+            openModal(budgetModal);
+        }
+        
+        // Delete budget
+        function deleteBudget(id) {
+            if (confirm('Are you sure you want to delete this budget?')) {
+                budgets = budgets.filter(b => b.id !== id);
+                localStorage.setItem('financeBudgets', JSON.stringify(budgets));
+                loadBudgets();
+                updateSummaryCards();
+            }
+        }
+        
+        // Load savings goals
+        function loadSavings() {
+            const savingsList = document.getElementById('savingsList');
+            
+            // Clear savings list
+            savingsList.innerHTML = '';
+            
+            // If no savings, show empty state
+            if (savings.length === 0) {
+                savingsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-piggy-bank"></i>
+                        <p>No savings goals set yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create savings items
+            savings.forEach(saving => {
+                const percentage = (saving.currentAmount / saving.targetAmount) * 100;
+                const remaining = saving.targetAmount - saving.currentAmount;
+                const targetDate = new Date(saving.targetDate);
+                const today = new Date();
+                const daysLeft = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+                
+                const savingsElement = document.createElement('div');
+                savingsElement.className = 'savings-item';
+                
+                savingsElement.innerHTML = `
+                    <div style="flex: 1;">
+                        <h4>${saving.goal}</h4>
+                        <div class="progress-bar">
+                            <div class="progress savings-progress" style="width: ${percentage}%"></div>
+                        </div>
+                        <div style="font-size: 14px; margin-top: 5px; color: var(--gray)">
+                            ${daysLeft > 0 ? `${daysLeft} days left` : 'Target date passed'}
+                        </div>
+                    </div>
+                    <div style="text-align: right; margin-right: 15px;">
+                        <div style="font-weight: 600;">$${saving.currentAmount.toFixed(2)} / $${saving.targetAmount.toFixed(2)}</div>
+                        <div style="font-size: 14px; color: var(--primary)">
+                            $${remaining.toFixed(2)} to go
+                        </div>
+                    </div>
+                    <div class="transaction-actions">
+                        <button class="action-btn edit-btn" data-id="${saving.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${saving.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add event listeners for edit and delete buttons
+                savingsElement.querySelector('.edit-btn').addEventListener('click', function() {
+                    editSavings(this.getAttribute('data-id'));
+                });
+                
+                savingsElement.querySelector('.delete-btn').addEventListener('click', function() {
+                    deleteSavings(this.getAttribute('data-id'));
+                });
+                
+                savingsList.appendChild(savingsElement);
+            });
+        }
+        
+        // Edit savings goal
+        function editSavings(id) {
+            const saving = savings.find(s => s.id === id);
+            if (!saving) return;
+            
+            // Fill form with savings data
+            savingsIdInput.value = saving.id;
+            document.getElementById('savingsGoal').value = saving.goal;
+            document.getElementById('targetAmount').value = saving.targetAmount;
+            document.getElementById('currentAmount').value = saving.currentAmount;
+            document.getElementById('targetDate').value = saving.targetDate;
+            
+            savingsModalTitle.textContent = 'Edit Savings Goal';
+            openModal(savingsModal);
+        }
+        
+        // Delete savings goal
+        function deleteSavings(id) {
+            if (confirm('Are you sure you want to delete this savings goal?')) {
+                savings = savings.filter(s => s.id !== id);
+                localStorage.setItem('financeSavings', JSON.stringify(savings));
+                loadSavings();
+            }
+        }
+        
+        // Update summary cards
+        function updateSummaryCards() {
+            // Calculate totals
+            const totalIncome = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const totalExpense = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + t.amount, 0);
+                
+            const balance = totalIncome - totalExpense;
+            
+            // Calculate budget remaining
+            const now = new Date();
+            const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const currentBudgets = budgets.filter(b => b.month === currentMonth);
+            
+            // Calculate total spent per category for current month
+            const expenseByCategory = {};
+            const currentMonthExpenses = transactions.filter(t => {
+                if (t.type !== 'expense') return false;
+                const transactionDate = new Date(t.date);
+                const transactionMonth = transactionDate.getFullYear() + '-' + String(transactionDate.getMonth() + 1).padStart(2, '0');
+                return transactionMonth === currentMonth;
+            });
+            
+            currentMonthExpenses.forEach(expense => {
+                if (!expenseByCategory[expense.category]) {
+                    expenseByCategory[expense.category] = 0;
+                }
+                expenseByCategory[expense.category] += expense.amount;
+            });
+            
+            // Calculate total budget and total spent
+            let totalBudget = 0;
+            let totalSpent = 0;
+            
+            currentBudgets.forEach(budget => {
+                totalBudget += budget.amount;
+                totalSpent += expenseByCategory[budget.category] || 0;
+            });
+            
+            const budgetRemaining = totalBudget - totalSpent;
+            
+            // Update DOM
+            document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `$${totalExpense.toFixed(2)}`;
+            document.getElementById('currentBalance').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('budgetRemaining').textContent = `$${budgetRemaining.toFixed(2)}`;
+        }
+        
+        // Update charts
+        function updateCharts() {
+            // Filter transactions for the current month
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const currentMonthTransactions = transactions.filter(t => {
+                const transactionDate = new Date(t.date);
+                return transactionDate.getMonth() === currentMonth && 
+                       transactionDate.getFullYear() === currentYear;
+            });
+            
+            // Prepare data for income vs expense chart
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+            }
+            
+            const incomeByDay = new Array(7).fill(0);
+            const expenseByDay = new Array(7).fill(0);
+            
+            currentMonthTransactions.forEach(t => {
+                const transactionDate = new Date(t.date);
+                const dayDiff = Math.floor((now - transactionDate) / (1000 * 60 * 60 * 24));
+                
+                if (dayDiff >= 0 && dayDiff < 7) {
+                    const index = 6 - dayDiff;
+                    if (t.type === 'income') {
+                        incomeByDay[index] += t.amount;
+                    } else {
+                        expenseByDay[index] += t.amount;
+                    }
+                }
+            });
+            
+            // Create or update income vs expense chart
+            const incomeExpenseCtx = document.getElementById('incomeExpenseChart').getContext('2d');
+            
+            if (incomeExpenseChart) {
+                incomeExpenseChart.destroy();
+            }
+            
+            incomeExpenseChart = new Chart(incomeExpenseCtx, {
+                type: 'bar',
+                data: {
+                    labels: last7Days,
+                    datasets: [
+                        {
+                            label: 'Income',
+                            data: incomeByDay,
+                            backgroundColor: 'rgba(6, 214, 160, 0.7)',
+                            borderColor: 'rgba(6, 214, 160, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Expense',
+                            data: expenseByDay,
+                            backgroundColor: 'rgba(239, 71, 111, 0.7)',
+                            borderColor: 'rgba(239, 71, 111, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Prepare data for expense category chart
+            const expenseCategories = {};
+            currentMonthTransactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    if (!expenseCategories[t.category]) {
+                        expenseCategories[t.category] = 0;
+                    }
+                    expenseCategories[t.category] += t.amount;
+                });
+            
+            const categoryLabels = Object.keys(expenseCategories);
+            const categoryData = Object.values(expenseCategories);
+            
+            // Category colors
+            const categoryColors = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+                '#9966FF', '#FF9F40', '#8AC926', '#1982C4',
+                '#6A4C93', '#FF595E'
+            ];
+            
+            // Create or update expense category chart
+            const expenseCategoryCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+            
+            if (expenseCategoryChart) {
+                expenseCategoryChart.destroy();
+            }
+            
+            expenseCategoryChart = new Chart(expenseCategoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels.map(cat => {
+                        const categoryNames = {
+                            food: 'Food & Dining',
+                            transportation: 'Transportation',
+                            entertainment: 'Entertainment',
+                            shopping: 'Shopping',
+                            bills: 'Bills & Utilities',
+                            health: 'Health & Fitness',
+                            other: 'Other'
+                        };
+                        return categoryNames[cat] || cat;
+                    }),
+                    datasets: [{
+                        data: categoryData,
+                        backgroundColor: categoryColors.slice(0, categoryLabels.length),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Add some sample data if empty
+        function initializeSampleData() {
+            if (transactions.length === 0) {
+                const sampleTransactions = [
+                    {
+                        id: '1',
+                        type: 'income',
+                        title: 'Monthly Salary',
+                        amount: 3500,
+                        category: 'salary',
+                        date: new Date().toISOString().split('T')[0],
+                        description: 'Monthly salary from work'
+                    },
+                    {
+                        id: '2',
+                        type: 'income',
+                        title: 'Freelance Project',
+                        amount: 800,
+                        category: 'freelance',
+                        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        description: 'Website development project'
+                    },
+                    {
+                        id: '3',
+                        type: 'expense',
+                        title: 'Grocery Shopping',
+                        amount: 120.50,
+                        category: 'food',
+                        date: new Date().toISOString().split('T')[0],
+                        description: 'Weekly groceries'
+                    },
+                    {
+                        id: '4',
+                        type: 'expense',
+                        title: 'Electricity Bill',
+                        amount: 85.30,
+                        category: 'bills',
+                        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        description: 'Monthly electricity bill'
+                    },
+                    {
+                        id: '5',
+                        type: 'expense',
+                        title: 'Gas',
+                        amount: 45.00,
+                        category: 'transportation',
+                        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                        description: 'Car fuel'
+                    }
+                ];
+                
+                transactions = sampleTransactions;
+                localStorage.setItem('financeTransactions', JSON.stringify(transactions));
+            }
+            
+            if (budgets.length === 0) {
+                const now = new Date();
+                const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                
+                const sampleBudgets = [
+                    {
+                        id: 'b1',
+                        category: 'food',
+                        amount: 500,
+                        month: currentMonth
+                    },
+                    {
+                        id: 'b2',
+                        category: 'transportation',
+                        amount: 200,
+                        month: currentMonth
+                    },
+                    {
+                        id: 'b3',
+                        category: 'entertainment',
+                        amount: 150,
+                        month: currentMonth
+                    },
+                    {
+                        id: 'b4',
+                        category: 'bills',
+                        amount: 300,
+                        month: currentMonth
+                    }
+                ];
+                
+                budgets = sampleBudgets;
+                localStorage.setItem('financeBudgets', JSON.stringify(budgets));
+            }
+            
+            if (savings.length === 0) {
+                const futureDate = new Date();
+                futureDate.setMonth(futureDate.getMonth() + 6);
+                
+                const sampleSavings = [
+                    {
+                        id: 's1',
+                        goal: 'Emergency Fund',
+                        targetAmount: 5000,
+                        currentAmount: 2300,
+                        targetDate: futureDate.toISOString().split('T')[0]
+                    },
+                    {
+                        id: 's2',
+                        goal: 'New Laptop',
+                        targetAmount: 1200,
+                        currentAmount: 800,
+                        targetDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                    }
+                ];
+                
+                savings = sampleSavings;
+                localStorage.setItem('financeSavings', JSON.stringify(savings));
+            }
+            
+            // Reload all data
+            loadTransactions();
+            loadBudgets();
+            loadSavings();
+            updateSummaryCards();
+            updateCharts();
+        }
+        
+        // Initialize sample data on first load if localStorage is empty
+        if (localStorage.getItem('firstLoad') === null) {
+            initializeSampleData();
+            localStorage.setItem('firstLoad', 'done');
+        }
+    </script>
+</body>
+</html>
